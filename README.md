@@ -1,1 +1,1 @@
-# Recommendation-Sytem
+# course_recommendation_system
