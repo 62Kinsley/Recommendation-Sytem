@@ -1,0 +1,16 @@
+{
+  "name": "ecommerce-recommendation-system",
+  "version": "1.0.0",
+  "description": "Serverless E-commerce Recommendation System",
+  "scripts": {
+    "deploy": "serverless deploy",
+    "deploy:prod": "serverless deploy --stage prod",
+    "remove": "serverless remove",
+    "logs": "serverless logs -f api -t"
+  },
+  "devDependencies": {
+    "serverless": "^3.38.0",
+    "serverless-python-requirements": "^6.0.0"
+  }
+}
+

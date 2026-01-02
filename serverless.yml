@@ -1,0 +1,311 @@
+service: ecommerce-recommendation-system
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: python3.9
+  region: ${opt:region, 'ap-northeast-1'}
+  stage: ${opt:stage, 'dev'}
+  memorySize: 1024
+  timeout: 30
+  environment:
+    STAGE: ${self:provider.stage}
+    ORDERS_TABLE: ${self:custom.ordersTable}
+    PRODUCTS_TABLE: ${self:custom.productsTable}
+    INVENTORY_TABLE: ${self:custom.inventoryTable}
+    RECOMMENDATIONS_TABLE: ${self:custom.recommendationsTable}
+    USER_ACTIONS_TABLE: ${self:custom.userActionsTable}
+    EVENT_BUS_NAME: ${self:custom.eventBusName}
+  iamRoleStatements:
+    # DynamoDB 权限
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+        - dynamodb:BatchGetItem
+        - dynamodb:BatchWriteItem
+      Resource:
+        - arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.ordersTable}
+        - arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.productsTable}
+        - arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.inventoryTable}
+        - arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.recommendationsTable}
+        - arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.userActionsTable}
+        - arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.ordersTable}/index/*
+        - arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.recommendationsTable}/index/*
+    # DynamoDB Streams 权限
+    - Effect: Allow
+      Action:
+        - dynamodb:DescribeStream
+        - dynamodb:GetRecords
+        - dynamodb:GetShardIterator
+        - dynamodb:ListStreams
+      Resource:
+        - arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.ordersTable}/stream/*
+    # EventBridge 权限
+    - Effect: Allow
+      Action:
+        - events:PutEvents
+      Resource:
+        - arn:aws:events:${self:provider.region}:*:event-bus/${self:custom.eventBusName}
+    # S3 权限（用于模型文件）
+    - Effect: Allow
+      Action:
+        - s3:GetObject
+      Resource:
+        - arn:aws:s3:::${self:custom.modelBucket}/*
+
+custom:
+  ordersTable: ${self:service}-orders-${self:provider.stage}
+  productsTable: ${self:service}-products-${self:provider.stage}
+  inventoryTable: ${self:service}-inventory-${self:provider.stage}
+  recommendationsTable: ${self:service}-recommendations-${self:provider.stage}
+  userActionsTable: ${self:service}-user-actions-${self:provider.stage}
+  eventBusName: ecommerce-events-${self:provider.stage}
+  modelBucket: ${self:service}-models-${self:provider.stage}
+
+functions:
+  # 订单处理函数
+  orderHandler:
+    handler: handlers/order_handler.process_order
+    memorySize: 1024
+    timeout: 10  # 目标: < 3s
+    events:
+      - http:
+          path: /api/orders
+          method: post
+          cors: true
+    environment:
+      ORDERS_TABLE: ${self:custom.ordersTable}
+      PRODUCTS_TABLE: ${self:custom.productsTable}
+      INVENTORY_TABLE: ${self:custom.inventoryTable}
+      EVENT_BUS_NAME: ${self:custom.eventBusName}
+
+  # 推荐生成函数（由 DynamoDB Streams 触发）
+  recommendationGenerator:
+    handler: handlers/recommendation_handler.lambda_handler
+    memorySize: 2048  # 需要更多内存用于推荐计算
+    timeout: 15  # 目标: < 500ms，但给更多时间处理批量
+    events:
+      - stream:
+          type: dynamodb
+          arn:
+            Fn::GetAtt:
+              - OrdersTable
+              - StreamArn
+          batchSize: 10
+          startingPosition: LATEST
+    environment:
+      ORDERS_TABLE: ${self:custom.ordersTable}
+      PRODUCTS_TABLE: ${self:custom.productsTable}
+      RECOMMENDATIONS_TABLE: ${self:custom.recommendationsTable}
+
+  # 推荐 API 函数
+  recommendationAPI:
+    handler: handlers/recommendation_api_handler.get_user_recommendations
+    memorySize: 512
+    timeout: 5  # 目标: < 500ms
+    events:
+      - http:
+          path: /api/recommendations
+          method: get
+          cors: true
+    environment:
+      RECOMMENDATIONS_TABLE: ${self:custom.recommendationsTable}
+
+  # 产品浏览函数
+  productBrowse:
+    handler: handlers/product_browse_handler.get_products
+    memorySize: 512
+    timeout: 5
+    events:
+      - http:
+          path: /api/products
+          method: get
+          cors: true
+    environment:
+      PRODUCTS_TABLE: ${self:custom.productsTable}
+
+  # 产品详情函数
+  productDetail:
+    handler: handlers/product_browse_handler.get_product_detail
+    memorySize: 512
+    timeout: 5
+    events:
+      - http:
+          path: /api/products/{product_id}
+          method: get
+          cors: true
+    environment:
+      PRODUCTS_TABLE: ${self:custom.productsTable}
+
+  # 用户行为记录函数
+  userAction:
+    handler: handlers/product_browse_handler.record_user_action
+    memorySize: 512
+    timeout: 5
+    events:
+      - http:
+          path: /api/user-actions
+          method: post
+          cors: true
+    environment:
+      USER_ACTIONS_TABLE: ${self:custom.userActionsTable}
+      EVENT_BUS_NAME: ${self:custom.eventBusName}
+
+  # 健康检查
+  health:
+    handler: handlers/health_handler.health_check
+    memorySize: 256
+    timeout: 3
+    events:
+      - http:
+          path: /health
+          method: get
+          cors: true
+
+resources:
+  Resources:
+    # DynamoDB 表: 订单
+    OrdersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.ordersTable}
+        BillingMode: PAY_PER_REQUEST
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+        AttributeDefinitions:
+          - AttributeName: order_id
+            AttributeType: S
+          - AttributeName: user_id
+            AttributeType: S
+          - AttributeName: created_at
+            AttributeType: S
+        KeySchema:
+          - AttributeName: order_id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: user_id-created_at-index
+            KeySchema:
+              - AttributeName: user_id
+                KeyType: HASH
+              - AttributeName: created_at
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+
+    # DynamoDB 表: 产品
+    ProductsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.productsTable}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: product_id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: product_id
+            KeyType: HASH
+
+    # DynamoDB 表: 库存
+    InventoryTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.inventoryTable}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: product_id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: product_id
+            KeyType: HASH
+
+    # DynamoDB 表: 用户推荐
+    RecommendationsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.recommendationsTable}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: user_id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: user_id
+            KeyType: HASH
+
+    # DynamoDB 表: 用户行为
+    UserActionsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.userActionsTable}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: action_id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: action_id
+            KeyType: HASH
+
+    # EventBridge 事件总线
+    EventBus:
+      Type: AWS::Events::EventBus
+      Properties:
+        Name: ${self:custom.eventBusName}
+
+    # S3 存储桶（用于模型文件）
+    ModelsBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.modelBucket}
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+
+  Outputs:
+    ApiGatewayRestApiId:
+      Value:
+        Ref: ApiGatewayRestApi
+      Export:
+        Name: ${self:provider.stage}-ApiGatewayRestApiId
+    ApiGatewayRestApiRootResourceId:
+      Value:
+        Fn::GetAtt:
+          - ApiGatewayRestApi
+          - RootResourceId
+      Export:
+        Name: ${self:provider.stage}-ApiGatewayRestApiRootResourceId
+    OrdersTableName:
+      Value: ${self:custom.ordersTable}
+      Export:
+        Name: ${self:provider.stage}-OrdersTableName
+    ProductsTableName:
+      Value: ${self:custom.productsTable}
+      Export:
+        Name: ${self:provider.stage}-ProductsTableName
+    EventBusName:
+      Value: ${self:custom.eventBusName}
+      Export:
+        Name: ${self:provider.stage}-EventBusName
+
+plugins:
+  - serverless-python-requirements
+
+package:
+  exclude:
+    - node_modules/**
+    - .git/**
+    - .vscode/**
+    - __pycache__/**
+    - *.pyc
+    - .pytest_cache/**
+    - .serverless/**
+    - models/**
+    - *.csv
+    - *.ipynb
+    - archive/**
