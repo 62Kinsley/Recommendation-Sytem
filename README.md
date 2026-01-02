@@ -1,206 +1,206 @@
-# Serverless 事件驱动电商推荐系统
+# Serverless Event-Driven E-commerce Recommendation System
 
-一个基于 AWS 的 serverless、事件驱动的电商系统，实现了订单处理、库存管理和个性化 AI 推荐功能。
+A serverless, event-driven e-commerce system built on AWS that implements order processing, inventory management, and personalized AI recommendation features.
 
-## 🎯 核心功能
+## 🎯 Core Features
 
-- ✅ **订单处理**: 处理订单放置，原子更新库存，< 3s 处理时间
-- ✅ **个性化推荐**: 基于订单历史实时生成推荐，< 500ms 生成延迟
-- ✅ **事件驱动架构**: 使用 DynamoDB Streams 和 EventBridge 实现异步处理
-- ✅ **RESTful API**: 完整的 API Gateway 接口
-- ✅ **细粒度 IAM 策略**: 确保数据安全和完整性
+- ✅ **Order Processing**: Process order placement with atomic inventory updates, < 3s processing time
+- ✅ **Personalized Recommendations**: Real-time recommendation generation based on order history, < 500ms generation latency
+- ✅ **Event-Driven Architecture**: Asynchronous processing using DynamoDB Streams and EventBridge
+- ✅ **RESTful API**: Complete API Gateway interfaces
+- ✅ **Fine-Grained IAM Policies**: Ensures data security and integrity
 
-## 🏗️ 系统架构
+## 🏗️ System Architecture
 
-### 事件驱动流程
+### Event-Driven Flow
 
 ```
-订单创建 → DynamoDB Streams → 推荐生成 Lambda → 存储推荐
+Order Creation → DynamoDB Streams → Recommendation Generator Lambda → Store Recommendations
     ↓
-EventBridge → 事件总线 → 下游服务
+EventBridge → Event Bus → Downstream Services
 ```
 
-### 核心组件
+### Core Components
 
-- **API Gateway**: RESTful API 入口
+- **API Gateway**: RESTful API entry point
 - **Lambda Functions**: 
-  - 订单处理（< 3s）
-  - 推荐生成（< 500ms，DynamoDB Streams 触发）
-  - 产品浏览
-  - 用户行为记录
+  - Order processing (< 3s)
+  - Recommendation generation (< 500ms, triggered by DynamoDB Streams)
+  - Product browsing
+  - User action recording
 - **DynamoDB**: 
-  - Orders（订单表，启用 Streams）
-  - Products（产品表）
-  - Inventory（库存表）
-  - UserRecommendations（用户推荐表）
-  - UserActions（用户行为表）
-- **EventBridge**: 事件总线，处理订单和用户行为事件
-- **IAM**: 细粒度访问控制
+  - Orders (order table with Streams enabled)
+  - Products (product table)
+  - Inventory (inventory table)
+  - UserRecommendations (user recommendation table)
+  - UserActions (user action table)
+- **EventBridge**: Event bus for processing order and user action events
+- **IAM**: Fine-grained access control
 
-详细架构文档请参考 [ARCHITECTURE.md](ARCHITECTURE.md)
+For detailed architecture documentation, see [ARCHITECTURE.md](ARCHITECTURE.md)
 
-## 📊 性能指标
+## 📊 Performance Metrics
 
-| 指标 | 目标 | 实现 |
-|------|------|------|
-| 订单处理时间 | < 3s | ✅ |
-| 推荐生成延迟 | < 500ms | ✅ |
-| 推荐查询延迟 | < 500ms | ✅ |
-| 系统可用性 | 99.9% | ✅ |
+| Metric | Target | Status |
+|--------|--------|--------|
+| Order Processing Time | < 3s | ✅ |
+| Recommendation Generation Latency | < 500ms | ✅ |
+| Recommendation Query Latency | < 500ms | ✅ |
+| System Availability | 99.9% | ✅ |
 
-## 🚀 快速开始
+## 🚀 Quick Start
 
-### 前置要求
+### Prerequisites
 
-1. **AWS 账户** 和配置的凭证
-2. **Node.js 14+** (用于 Serverless Framework)
-3. **Python 3.9+** (用于本地开发)
-4. **AWS CLI** 已配置
+1. **AWS Account** with configured credentials
+2. **Node.js 14+** (for Serverless Framework)
+3. **Python 3.9+** (for local development)
+4. **AWS CLI** configured
 
-### 安装步骤
+### Installation Steps
 
-1. **克隆项目**
+1. **Clone the repository**
 ```bash
 git clone <repository-url>
 cd Recommendation-Sytem
 ```
 
-2. **安装依赖**
+2. **Install dependencies**
 ```bash
-# Node.js 依赖
+# Node.js dependencies
 npm install
 
-# Python 依赖
+# Python dependencies
 pip install -r requirements.txt
 ```
 
-3. **部署到 AWS**
+3. **Deploy to AWS**
 ```bash
-# 部署到开发环境
+# Deploy to development environment
 serverless deploy
 
-# 或部署到生产环境
+# Or deploy to production environment
 serverless deploy --stage prod
 ```
 
-4. **初始化 DynamoDB 数据**
+4. **Initialize DynamoDB data**
 ```bash
-# 创建示例产品和库存数据
+# Create sample product and inventory data
 python scripts/init_dynamodb.py
 ```
 
-5. **测试 API**
+5. **Test the API**
 
-从部署输出中获取 API Gateway URL，然后测试：
+Get the API Gateway URL from the deployment output, then test:
 
 ```bash
-# 健康检查
+# Health check
 curl https://<api-url>/health
 
-# 获取产品列表
+# Get product list
 curl https://<api-url>/api/products
 
-# 创建订单
+# Create an order
 curl -X POST https://<api-url>/api/orders \
   -H "Content-Type: application/json" \
   -d '{
     "user_id": "USER001",
     "items": [{"product_id": "PROD0001", "quantity": 2}],
-    "shipping_address": {"city": "Beijing"}
+    "shipping_address": {"city": "New York"}
   }'
 
-# 获取推荐
+# Get recommendations
 curl "https://<api-url>/api/recommendations?user_id=USER001"
 ```
 
-## 📁 项目结构
+## 📁 Project Structure
 
 ```
 .
-├── handlers/                      # Lambda 函数处理程序
-│   ├── order_handler.py         # 订单处理
-│   ├── recommendation_handler.py # 推荐生成（Streams 触发）
-│   ├── recommendation_api_handler.py # 推荐查询 API
-│   ├── product_browse_handler.py # 产品浏览
-│   └── health_handler.py        # 健康检查
-├── scripts/                      # 工具脚本
-│   ├── init_dynamodb.py         # 初始化 DynamoDB 数据
-│   └── monitoring_setup.py      # 监控配置
-├── serverless.yml                # Serverless 配置
-├── requirements.txt              # Python 依赖
-├── package.json                 # Node.js 依赖
-├── ARCHITECTURE.md              # 架构文档
-├── API.md                       # API 文档
-└── README.md                    # 项目说明
+├── handlers/                      # Lambda function handlers
+│   ├── order_handler.py         # Order processing
+│   ├── recommendation_handler.py # Recommendation generation (Streams triggered)
+│   ├── recommendation_api_handler.py # Recommendation query API
+│   ├── product_browse_handler.py # Product browsing
+│   └── health_handler.py        # Health check
+├── scripts/                      # Utility scripts
+│   ├── init_dynamodb.py         # Initialize DynamoDB data
+│   └── monitoring_setup.py      # Monitoring configuration
+├── serverless.yml                # Serverless configuration
+├── requirements.txt              # Python dependencies
+├── package.json                 # Node.js dependencies
+├── ARCHITECTURE.md              # Architecture documentation
+├── API.md                       # API documentation
+└── README.md                    # Project documentation
 ```
 
-## 🔌 API 端点
+## 🔌 API Endpoints
 
-### 订单相关
+### Order Related
 
-- `POST /api/orders` - 创建订单
-  - 请求体: `{user_id, items[], shipping_address}`
-  - 响应: `{order_id, total_amount, processing_time_ms}`
+- `POST /api/orders` - Create order
+  - Request body: `{user_id, items[], shipping_address}`
+  - Response: `{order_id, total_amount, processing_time_ms}`
 
-### 产品相关
+### Product Related
 
-- `GET /api/products` - 获取产品列表（支持分页和筛选）
-- `GET /api/products/{product_id}` - 获取产品详情
+- `GET /api/products` - Get product list (supports pagination and filtering)
+- `GET /api/products/{product_id}` - Get product details
 
-### 推荐相关
+### Recommendation Related
 
-- `GET /api/recommendations?user_id=USER001` - 获取用户推荐
-  - 响应: `{data[], count, response_time_ms}`
+- `GET /api/recommendations?user_id=USER001` - Get user recommendations
+  - Response: `{data[], count, response_time_ms}`
 
-### 用户行为
+### User Actions
 
-- `POST /api/user-actions` - 记录用户行为
-  - 请求体: `{user_id, action_type, product_id, metadata}`
+- `POST /api/user-actions` - Record user actions
+  - Request body: `{user_id, action_type, product_id, metadata}`
 
-### 系统
+### System
 
-- `GET /health` - 健康检查
+- `GET /health` - Health check
 
-详细 API 文档请参考 [API.md](API.md)
+For detailed API documentation, see [API.md](API.md)
 
-## 🔐 安全架构
+## 🔐 Security Architecture
 
-### IAM 策略
+### IAM Policies
 
-系统实现了细粒度的 IAM 策略：
+The system implements fine-grained IAM policies:
 
-- **DynamoDB 访问**: 表级别权限，只允许必要的操作
-- **EventBridge 访问**: 事件总线级别权限
-- **Lambda 执行**: 最小权限原则
-- **S3 访问**: 存储桶级别权限（如需要）
+- **DynamoDB Access**: Table-level permissions, only necessary operations allowed
+- **EventBridge Access**: Event bus-level permissions
+- **Lambda Execution**: Principle of least privilege
+- **S3 Access**: Bucket-level permissions (if needed)
 
-所有 IAM 策略在 `serverless.yml` 中定义。
+All IAM policies are defined in `serverless.yml`.
 
-## 📈 监控和日志
+## 📈 Monitoring and Logging
 
 ### CloudWatch
 
-- **Lambda 日志**: 自动记录到 CloudWatch Logs
-- **指标**: 执行时间、错误率、调用次数
-- **告警**: 可配置性能阈值告警
+- **Lambda Logs**: Automatically logged to CloudWatch Logs
+- **Metrics**: Execution time, error rate, invocation count
+- **Alarms**: Configurable performance threshold alarms
 
-### 设置监控
+### Setup Monitoring
 
 ```bash
 python scripts/monitoring_setup.py
 ```
 
-这将创建以下告警：
-- 订单处理时间 > 3s
-- 推荐生成时间 > 500ms
-- Lambda 错误率 > 5%
+This will create the following alarms:
+- Order processing time > 3s
+- Recommendation generation time > 500ms
+- Lambda error rate > 5%
 
-## 🛠️ 开发指南
+## 🛠️ Development Guide
 
-### 本地测试
+### Local Testing
 
 ```bash
-# 测试订单处理
+# Test order processing
 python -c "
 from handlers.order_handler import process_order
 event = {
@@ -212,92 +212,92 @@ print(result)
 "
 ```
 
-### 添加新功能
+### Adding New Features
 
-1. 在 `handlers/` 目录创建新的 Lambda 函数
-2. 在 `serverless.yml` 中配置函数和事件
-3. 更新 IAM 策略（如需要）
-4. 部署并测试
+1. Create a new Lambda function in the `handlers/` directory
+2. Configure the function and events in `serverless.yml`
+3. Update IAM policies (if needed)
+4. Deploy and test
 
-### 环境变量
+### Environment Variables
 
-所有表名和配置通过环境变量传递，在 `serverless.yml` 中定义。
+All table names and configurations are passed through environment variables, defined in `serverless.yml`.
 
-## 📦 部署
+## 📦 Deployment
 
-### 首次部署
+### Initial Deployment
 
 ```bash
-# 1. 部署服务
+# 1. Deploy the service
 serverless deploy
 
-# 2. 初始化数据
+# 2. Initialize data
 python scripts/init_dynamodb.py
 
-# 3. 设置监控（可选）
+# 3. Setup monitoring (optional)
 python scripts/monitoring_setup.py
 ```
 
-### 更新部署
+### Update Deployment
 
 ```bash
 serverless deploy
 ```
 
-### 删除部署
+### Remove Deployment
 
 ```bash
 serverless remove
 ```
 
-## 💰 成本优化
+## 💰 Cost Optimization
 
-- **按需计费**: Lambda、DynamoDB 按实际使用付费
-- **自动扩展**: 无需预置容量
-- **资源优化**: 根据性能需求调整 Lambda 内存
+- **Pay-per-use**: Lambda and DynamoDB charged based on actual usage
+- **Auto-scaling**: No need to provision capacity
+- **Resource Optimization**: Adjust Lambda memory based on performance requirements
 
-## 🐛 故障排除
+## 🐛 Troubleshooting
 
-### 常见问题
+### Common Issues
 
-1. **DynamoDB 表不存在**
-   - 确保已运行 `serverless deploy`
-   - 检查表名是否正确
+1. **DynamoDB table does not exist**
+   - Ensure `serverless deploy` has been run
+   - Check if table names are correct
 
-2. **Lambda 超时**
-   - 增加 `timeout` 配置
-   - 优化代码逻辑
+2. **Lambda timeout**
+   - Increase `timeout` configuration
+   - Optimize code logic
 
-3. **推荐未生成**
-   - 检查 DynamoDB Streams 是否启用
-   - 查看 CloudWatch Logs
+3. **Recommendations not generated**
+   - Check if DynamoDB Streams is enabled
+   - View CloudWatch Logs
 
-4. **权限错误**
-   - 检查 IAM 策略配置
-   - 确认 Lambda 执行角色权限
+4. **Permission errors**
+   - Check IAM policy configuration
+   - Verify Lambda execution role permissions
 
-## 📚 相关文档
+## 📚 Related Documentation
 
-- [架构文档](ARCHITECTURE.md) - 详细的系统架构说明
-- [API 文档](API.md) - 完整的 API 接口文档
-- [快速开始](QUICKSTART.md) - 快速部署指南
+- [Architecture Documentation](ARCHITECTURE.md) - Detailed system architecture
+- [API Documentation](API.md) - Complete API interface documentation
+- [Quick Start Guide](QUICKSTART.md) - Quick deployment guide
 
-## 🤝 贡献
+## 🤝 Contributing
 
-欢迎提交 Issue 和 Pull Request！
+Issues and Pull Requests are welcome!
 
-## 📄 许可证
+## 📄 License
 
 MIT License
 
-## 📞 联系方式
+## 📞 Contact
 
-如有问题，请提交 Issue。
+For questions, please submit an Issue.
 
 ---
 
-**性能指标达成**:
-- ✅ 订单处理: < 3s
-- ✅ 推荐生成: < 500ms
-- ✅ 事件驱动架构
-- ✅ 细粒度 IAM 策略
+**Performance Metrics Achieved**:
+- ✅ Order Processing: < 3s
+- ✅ Recommendation Generation: < 500ms
+- ✅ Event-Driven Architecture
+- ✅ Fine-Grained IAM Policies

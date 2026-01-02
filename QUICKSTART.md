@@ -1,100 +1,99 @@
-# 快速开始指南
+# Quick Start Guide
 
-## 5 分钟快速部署
+## 5-Minute Quick Deployment
 
-### 步骤 1: 准备环境
+### Step 1: Prepare Environment
 
 ```bash
-# 安装 Node.js 依赖
+# Install Node.js dependencies
 npm install
 
-# 安装 Python 依赖
+# Install Python dependencies
 pip install -r requirements.txt
 ```
 
-### 步骤 2: 创建数据和训练模型
+### Step 2: Create Data and Train Model
 
 ```bash
-# 创建示例产品数据
+# Create sample product data
 python create_sample_data.py
 
-# 训练推荐模型
+# Train recommendation model
 python train_model.py
 ```
 
-### 步骤 3: 配置 AWS
+### Step 3: Configure AWS
 
 ```bash
-# 配置 AWS 凭证
+# Configure AWS credentials
 aws configure
 ```
 
-需要提供：
+You need to provide:
 - AWS Access Key ID
 - AWS Secret Access Key
-- 默认区域（如：ap-northeast-1）
-- 输出格式（json）
+- Default region (e.g., ap-northeast-1)
+- Output format (json)
 
-### 步骤 4: 部署
+### Step 4: Deploy
 
 ```bash
-# 方式1: 使用部署脚本（推荐）
+# Method 1: Use deployment script (recommended)
 ./deploy.sh
 
-# 方式2: 手动部署
+# Method 2: Manual deployment
 npm run deploy
 ```
 
-### 步骤 5: 上传模型
+### Step 5: Upload Models
 
-部署完成后，从输出中获取 S3 存储桶名称，然后上传模型：
+After deployment, get the S3 bucket name from the output, then upload models:
 
 ```bash
-# 替换 <bucket-name> 为实际的存储桶名称
+# Replace <bucket-name> with the actual bucket name
 aws s3 cp models/ s3://<bucket-name>/models/ --recursive
 ```
 
-### 步骤 6: 测试 API
+### Step 6: Test API
 
-从部署输出中获取 API Gateway URL，然后测试：
+Get the API Gateway URL from the deployment output, then test:
 
 ```bash
-# 健康检查
+# Health check
 curl https://<your-api-url>/health
 
-# 获取推荐
-curl "https://<your-api-url>/api/recommend?product_id=PROD0001&limit=6"
+# Get recommendations
+curl "https://<your-api-url>/api/recommendations?user_id=USER001"
 ```
 
-## 本地测试
+## Local Testing
 
-在部署前，可以先在本地测试：
+You can test locally before deployment:
 
 ```bash
 python test_local.py
 ```
 
-## 常见问题
+## Common Issues
 
-### Q: 部署失败，提示权限不足
-A: 检查 AWS IAM 权限，确保有以下权限：
-- Lambda 相关权限
-- S3 相关权限
-- API Gateway 权限
-- CloudFormation 权限
+### Q: Deployment fails with insufficient permissions
+A: Check AWS IAM permissions, ensure you have:
+- Lambda-related permissions
+- S3-related permissions
+- API Gateway permissions
+- CloudFormation permissions
 
-### Q: 模型文件太大，上传失败
-A: 可以：
-1. 减少产品数量
-2. 使用 Lambda Layers 存储大型依赖
-3. 优化模型参数（减少特征数量）
+### Q: Model files are too large, upload fails
+A: You can:
+1. Reduce the number of products
+2. Use Lambda Layers to store large dependencies
+3. Optimize model parameters (reduce feature count)
 
-### Q: Lambda 函数超时
-A: 在 `serverless.yml` 中增加 `timeout` 值，或优化模型加载逻辑。
+### Q: Lambda function times out
+A: Increase the `timeout` value in `serverless.yml`, or optimize model loading logic.
 
-## 下一步
+## Next Steps
 
-- 查看 [API.md](API.md) 了解完整的 API 文档
-- 查看 [README.md](README.md) 了解详细配置
-- 根据实际需求修改推荐算法
-
+- View [API.md](API.md) for complete API documentation
+- View [README.md](README.md) for detailed configuration
+- Modify recommendation algorithms according to actual needs

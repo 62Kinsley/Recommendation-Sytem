@@ -1,150 +1,149 @@
-# 项目改造日志
+# Project Transformation Log
 
-## 从课程推荐系统到 Serverless 电商推荐系统
+## From Course Recommendation System to Serverless E-commerce Recommendation System
 
-### 主要变更
+### Major Changes
 
-#### 1. 架构改造
-- ✅ **从 Flask 应用改为 Serverless 架构**
-  - 原: Flask 本地服务器 (`app.py`)
-  - 新: AWS Lambda 函数 (`lambda_function.py`)
-  - 优势: 按需计费、自动扩展、无需服务器管理
+#### 1. Architecture Transformation
+- ✅ **Changed from Flask Application to Serverless Architecture**
+  - Original: Flask local server (`app.py`)
+  - New: AWS Lambda functions (`lambda_function.py`)
+  - Advantages: Pay-per-use, auto-scaling, no server management
 
-#### 2. 业务场景转换
-- ✅ **从课程推荐改为电商产品推荐**
-  - 原: Coursera 课程推荐
-  - 新: 电商产品推荐
-  - 数据结构适配: 产品ID、价格、类别、评分等
+#### 2. Business Scenario Conversion
+- ✅ **Changed from Course Recommendation to E-commerce Product Recommendation**
+  - Original: Coursera course recommendation
+  - New: E-commerce product recommendation
+  - Data structure adaptation: Product ID, price, category, rating, etc.
 
-#### 3. API 设计
-- ✅ **RESTful API 接口**
-  - `GET /health` - 健康检查
-  - `GET /api/recommend` - 获取产品推荐
-  - `GET /api/products` - 获取所有产品
-  - 支持 CORS，可从前端直接调用
+#### 3. API Design
+- ✅ **RESTful API Interfaces**
+  - `GET /health` - Health check
+  - `GET /api/recommend` - Get product recommendations
+  - `GET /api/products` - Get all products
+  - CORS support, can be called directly from frontend
 
-#### 4. 部署方式
-- ✅ **Serverless Framework 部署**
-  - 配置文件: `serverless.yml`
-  - 一键部署: `npm run deploy`
-  - 自动创建: Lambda 函数、API Gateway、S3 存储桶
+#### 4. Deployment Method
+- ✅ **Serverless Framework Deployment**
+  - Configuration file: `serverless.yml`
+  - One-click deployment: `npm run deploy`
+  - Auto-create: Lambda functions, API Gateway, S3 buckets
 
-#### 5. 模型存储
-- ✅ **S3 存储模型文件**
-  - 原: 本地文件系统
-  - 新: AWS S3 存储桶
-  - 优势: 集中管理、版本控制、高可用
+#### 5. Model Storage
+- ✅ **S3 Model File Storage**
+  - Original: Local file system
+  - New: AWS S3 bucket
+  - Advantages: Centralized management, version control, high availability
 
-#### 6. 开发工具
-- ✅ **新增开发工具**
-  - `create_sample_data.py` - 创建示例电商数据
-  - `train_model.py` - 训练推荐模型
-  - `test_local.py` - 本地测试 Lambda 函数
-  - `deploy.sh` - 自动化部署脚本
+#### 6. Development Tools
+- ✅ **New Development Tools**
+  - `create_sample_data.py` - Create sample e-commerce data
+  - `train_model.py` - Train recommendation model
+  - `test_local.py` - Local Lambda function testing
+  - `deploy.sh` - Automated deployment script
 
-### 文件变更
+### File Changes
 
-#### 新增文件
-- `lambda_function.py` - Lambda 函数主文件
-- `train_model.py` - 模型训练脚本
-- `create_sample_data.py` - 示例数据生成
-- `serverless.yml` - Serverless 配置
-- `package.json` - Node.js 依赖
-- `requirements.txt` - Python 依赖
-- `API.md` - API 文档
-- `QUICKSTART.md` - 快速开始指南
-- `test_local.py` - 本地测试脚本
-- `deploy.sh` - 部署脚本
-- `.gitignore` - Git 忽略文件
+#### New Files
+- `lambda_function.py` - Lambda function main file
+- `train_model.py` - Model training script
+- `create_sample_data.py` - Sample data generation
+- `serverless.yml` - Serverless configuration
+- `package.json` - Node.js dependencies
+- `requirements.txt` - Python dependencies
+- `API.md` - API documentation
+- `QUICKSTART.md` - Quick start guide
+- `test_local.py` - Local testing script
+- `deploy.sh` - Deployment script
+- `.gitignore` - Git ignore file
 
-#### 保留文件
-- `app.py` - 原 Flask 应用（保留作为参考）
-- `Course Recommendation System.ipynb` - 原 Jupyter 笔记本（保留作为参考）
-- `Coursera.csv` - 原数据文件（保留作为参考）
+#### Preserved Files
+- `app.py` - Original Flask application (kept as reference)
+- `Course Recommendation System.ipynb` - Original Jupyter notebook (kept as reference)
+- `Coursera.csv` - Original data file (kept as reference)
 
-#### 更新文件
-- `README.md` - 完全重写，适配新系统
+#### Updated Files
+- `README.md` - Completely rewritten, adapted to new system
 
-### 技术栈对比
+### Technology Stack Comparison
 
-| 项目 | 原系统 | 新系统 |
-|------|--------|--------|
-| 后端框架 | Flask | AWS Lambda |
-| 部署方式 | 本地服务器 | Serverless |
-| 模型存储 | 本地文件 | S3 |
-| API 网关 | Flask 路由 | API Gateway |
-| 扩展性 | 手动扩展 | 自动扩展 |
-| 成本 | 固定成本 | 按需计费 |
+| Item | Original System | New System |
+|------|----------------|------------|
+| Backend Framework | Flask | AWS Lambda |
+| Deployment Method | Local Server | Serverless |
+| Model Storage | Local Files | S3 |
+| API Gateway | Flask Routes | API Gateway |
+| Scalability | Manual Scaling | Auto-scaling |
+| Cost | Fixed Cost | Pay-per-use |
 
-### 使用场景
+### Use Cases
 
-#### 原系统适用场景
-- 小规模内部使用
-- 固定服务器环境
-- 课程/教育平台
+#### Original System Use Cases
+- Small-scale internal use
+- Fixed server environment
+- Course/education platform
 
-#### 新系统适用场景
-- 电商平台产品推荐
-- 高并发访问
-- 需要弹性扩展
-- 成本敏感的应用
+#### New System Use Cases
+- E-commerce platform product recommendation
+- High-concurrency access
+- Requires elastic scaling
+- Cost-sensitive applications
 
-### 迁移指南
+### Migration Guide
 
-如果您想从原系统迁移到新系统：
+If you want to migrate from the original system to the new system:
 
-1. **数据迁移**
+1. **Data Migration**
    ```bash
-   # 将课程数据转换为产品数据格式
+   # Convert course data to product data format
    python create_sample_data.py
    ```
 
-2. **模型训练**
+2. **Model Training**
    ```bash
-   # 使用新的训练脚本训练模型
+   # Train model using new training script
    python train_model.py
    ```
 
-3. **部署**
+3. **Deployment**
    ```bash
-   # 部署到 AWS
+   # Deploy to AWS
    ./deploy.sh
    ```
 
-4. **测试**
+4. **Testing**
    ```bash
-   # 本地测试
+   # Local testing
    python test_local.py
    
-   # 测试 API
+   # Test API
    curl https://your-api-url/health
    ```
 
-### 后续优化建议
+### Future Optimization Suggestions
 
-1. **性能优化**
-   - 使用 Lambda Layers 存储大型依赖
-   - 实现模型缓存机制
-   - 优化冷启动时间
+1. **Performance Optimization**
+   - Use Lambda Layers to store large dependencies
+   - Implement model caching mechanism
+   - Optimize cold start time
 
-2. **功能增强**
-   - 添加用户行为分析
-   - 实现协同过滤算法
-   - 支持实时推荐更新
+2. **Feature Enhancement**
+   - Add user behavior analysis
+   - Implement collaborative filtering algorithm
+   - Support real-time recommendation updates
 
-3. **监控和日志**
-   - 集成 CloudWatch 监控
-   - 添加性能指标
-   - 实现告警机制
+3. **Monitoring and Logging**
+   - Integrate CloudWatch monitoring
+   - Add performance metrics
+   - Implement alarm mechanism
 
-4. **安全性**
-   - 添加 API 密钥认证
-   - 实现请求限流
-   - 添加数据加密
+4. **Security**
+   - Add API key authentication
+   - Implement request rate limiting
+   - Add data encryption
 
-### 版本信息
+### Version Information
 
-- **版本**: 1.0.0
-- **改造日期**: 2024
-- **兼容性**: Python 3.9+, Node.js 14+
-
+- **Version**: 2.0.0
+- **Transformation Date**: 2024
+- **Compatibility**: Python 3.9+, Node.js 14+

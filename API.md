@@ -1,30 +1,30 @@
-# API 文档 - 事件驱动电商推荐系统
+# API Documentation - Event-Driven E-commerce Recommendation System
 
-## 基础信息
+## Basic Information
 
-- **服务名称**: E-commerce Recommendation System
-- **版本**: 2.0.0
-- **架构**: Serverless Event-Driven
-- **部署方式**: AWS Lambda + API Gateway
+- **Service Name**: E-commerce Recommendation System
+- **Version**: 2.0.0
+- **Architecture**: Serverless Event-Driven
+- **Deployment**: AWS Lambda + API Gateway
 
-## 性能指标
+## Performance Metrics
 
-- **订单处理**: < 3 秒
-- **推荐生成**: < 500 毫秒
-- **推荐查询**: < 500 毫秒
+- **Order Processing**: < 3 seconds
+- **Recommendation Generation**: < 500 milliseconds
+- **Recommendation Query**: < 500 milliseconds
 
-## API 端点
+## API Endpoints
 
-### 1. 健康检查
+### 1. Health Check
 
-检查服务是否正常运行。
+Check if the service is running normally.
 
-**请求**
+**Request**
 ```
 GET /health
 ```
 
-**响应**
+**Response**
 ```json
 {
   "status": "healthy",
@@ -36,11 +36,11 @@ GET /health
 
 ---
 
-### 2. 创建订单
+### 2. Create Order
 
-创建新订单，自动更新库存并发布事件。
+Create a new order, automatically update inventory and publish events.
 
-**请求**
+**Request**
 ```
 POST /api/orders
 Content-Type: application/json
@@ -55,65 +55,65 @@ Content-Type: application/json
   ],
   "shipping_address": {
     "street": "123 Main St",
-    "city": "Beijing",
-    "postal_code": "100000"
+    "city": "New York",
+    "postal_code": "10001"
   }
 }
 ```
 
-**响应**
+**Response**
 ```json
 {
   "success": true,
   "order_id": "ORD1234567890",
   "total_amount": 599.98,
   "processing_time_ms": 2450.5,
-  "message": "订单创建成功"
+  "message": "Order created successfully"
 }
 ```
 
-**错误响应**
+**Error Response**
 ```json
 {
-  "error": "库存不足: PROD0001"
+  "error": "Insufficient inventory: PROD0001"
 }
 ```
 
-**状态码**
-- `200`: 成功
-- `400`: 请求参数错误或库存不足
-- `404`: 产品不存在
-- `500`: 服务器错误
+**Status Codes**
+- `200`: Success
+- `400`: Request parameter error or insufficient inventory
+- `404`: Product not found
+- `500`: Server error
 
 ---
 
-### 3. 获取产品列表
+### 3. Get Product List
 
-获取产品列表，支持分页和类别筛选。
+Get product list with pagination and category filtering support.
 
-**请求**
+**Request**
 ```
-GET /api/products?category=电子产品&page=1&limit=20
+GET /api/products?category=Electronics&page=1&limit=20
 ```
 
-**查询参数**
-- `category` (可选): 产品类别
-- `page` (可选): 页码，默认 1
-- `limit` (可选): 每页数量，默认 20
+**Query Parameters**
+- `category` (optional): Product category
+- `page` (optional): Page number, default 1
+- `limit` (optional): Items per page, default 20
 
-**响应**
+**Response**
 ```json
 {
   "success": true,
   "data": [
     {
       "product_id": "PROD0001",
-      "product_name": "无线蓝牙耳机",
-      "category": "电子产品",
+      "product_name": "Wireless Bluetooth Headphones",
+      "category": "Electronics",
       "price": 299.99,
       "rating": 4.5,
       "image_url": "https://example.com/image.jpg",
-      "description": "高品质无线蓝牙耳机"
+      "description": "High-quality wireless Bluetooth headphones"
     }
   ],
   "pagination": {
@@ -127,55 +127,55 @@ GET /api/products?category=电子产品&page=1&limit=20
 
 ---
 
-### 4. 获取产品详情
+### 4. Get Product Details
 
-获取单个产品的详细信息。
+Get detailed information for a single product.
 
-**请求**
+**Request**
 ```
 GET /api/products/{product_id}
 ```
 
-**响应**
+**Response**
 ```json
 {
   "success": true,
   "data": {
     "product_id": "PROD0001",
-    "product_name": "无线蓝牙耳机",
-    "category": "电子产品",
+    "product_name": "Wireless Bluetooth Headphones",
+    "category": "Electronics",
     "price": 299.99,
     "rating": 4.5,
     "image_url": "https://example.com/image.jpg",
-    "description": "高品质无线蓝牙耳机",
-    "tags": "蓝牙 无线 降噪 音乐"
+    "description": "High-quality wireless Bluetooth headphones",
+    "tags": "bluetooth wireless noise-canceling music"
   }
 }
 ```
 
 ---
 
-### 5. 获取用户推荐
+### 5. Get User Recommendations
 
-获取用户的个性化推荐（从 UserRecommendations 表读取）。
+Get user's personalized recommendations (read from UserRecommendations table).
 
-**请求**
+**Request**
 ```
 GET /api/recommendations?user_id=USER001
 ```
 
-**查询参数**
-- `user_id` (必需): 用户ID
+**Query Parameters**
+- `user_id` (required): User ID
 
-**响应**
+**Response**
 ```json
 {
   "success": true,
   "data": [
     {
       "product_id": "PROD0002",
-      "product_name": "智能手机",
-      "category": "电子产品",
+      "product_name": "Smartphone",
+      "category": "Electronics",
       "price": 2999.99,
       "rating": 4.7,
       "image_url": "https://example.com/image2.jpg",
@@ -188,23 +188,23 @@ GET /api/recommendations?user_id=USER001
 }
 ```
 
-**错误响应**
+**Error Response**
 ```json
 {
-  "error": "未找到该用户的推荐",
-  "message": "推荐可能正在生成中，请稍后重试"
+  "error": "Recommendations not found for this user",
+  "message": "Recommendations may be generating, please try again later"
 }
 ```
 
-**注意**: 推荐由 DynamoDB Streams 异步生成，首次查询可能需要等待。
+**Note**: Recommendations are generated asynchronously by DynamoDB Streams, the first query may require waiting.
 
 ---
 
-### 6. 记录用户行为
+### 6. Record User Action
 
-记录用户行为（浏览、点击、搜索等），写入 DynamoDB 并发布事件。
+Record user actions (browse, click, search, etc.), write to DynamoDB and publish events.
 
-**请求**
+**Request**
 ```
 POST /api/user-actions
 Content-Type: application/json
@@ -220,47 +220,47 @@ Content-Type: application/json
 }
 ```
 
-**请求体参数**
-- `user_id` (必需): 用户ID
-- `action_type` (必需): 行为类型 (`view`, `click`, `search`, `add_to_cart`)
-- `product_id` (可选): 产品ID
-- `metadata` (可选): 额外元数据
+**Request Body Parameters**
+- `user_id` (required): User ID
+- `action_type` (required): Action type (`view`, `click`, `search`, `add_to_cart`)
+- `product_id` (optional): Product ID
+- `metadata` (optional): Additional metadata
 
-**响应**
+**Response**
 ```json
 {
   "success": true,
   "action_id": "USER001_1704067200000",
-  "message": "用户行为已记录"
+  "message": "User action recorded"
 }
 ```
 
 ---
 
-## 使用示例
+## Usage Examples
 
 ### cURL
 
 ```bash
-# 健康检查
+# Health check
 curl https://your-api-url/health
 
-# 创建订单
+# Create order
 curl -X POST https://your-api-url/api/orders \
   -H "Content-Type: application/json" \
   -d '{
     "user_id": "USER001",
     "items": [{"product_id": "PROD0001", "quantity": 1}],
-    "shipping_address": {"city": "Beijing"}
+    "shipping_address": {"city": "New York"}
   }'
 
-# 获取产品列表
-curl "https://your-api-url/api/products?category=电子产品&page=1"
+# Get product list
+curl "https://your-api-url/api/products?category=Electronics&page=1"
 
-# 获取推荐
+# Get recommendations
 curl "https://your-api-url/api/recommendations?user_id=USER001"
 
-# 记录用户行为
+# Record user action
 curl -X POST https://your-api-url/api/user-actions \
   -H "Content-Type: application/json" \
   -d '{
@@ -277,22 +277,22 @@ import requests
 
 BASE_URL = "https://your-api-url"
 
-# 创建订单
+# Create order
 order_data = {
     "user_id": "USER001",
     "items": [{"product_id": "PROD0001", "quantity": 2}],
-    "shipping_address": {"city": "Beijing"}
+    "shipping_address": {"city": "New York"}
 }
 response = requests.post(f"{BASE_URL}/api/orders", json=order_data)
 order = response.json()
-print(f"订单ID: {order['order_id']}")
-print(f"处理时间: {order['processing_time_ms']}ms")
+print(f"Order ID: {order['order_id']}")
+print(f"Processing Time: {order['processing_time_ms']}ms")
 
-# 获取推荐
+# Get recommendations
 response = requests.get(f"{BASE_URL}/api/recommendations", 
                        params={"user_id": "USER001"})
 recommendations = response.json()['data']
-print(f"推荐数量: {len(recommendations)}")
+print(f"Recommendation Count: {len(recommendations)}")
 ```
 
 ### JavaScript
@@ -300,90 +300,90 @@ print(f"推荐数量: {len(recommendations)}")
 ```javascript
 const BASE_URL = 'https://your-api-url';
 
-// 创建订单
+// Create order
 fetch(`${BASE_URL}/api/orders`, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     user_id: 'USER001',
     items: [{ product_id: 'PROD0001', quantity: 2 }],
-    shipping_address: { city: 'Beijing' }
+    shipping_address: { city: 'New York' }
   })
 })
   .then(res => res.json())
   .then(data => {
-    console.log(`订单ID: ${data.order_id}`);
-    console.log(`处理时间: ${data.processing_time_ms}ms`);
+    console.log(`Order ID: ${data.order_id}`);
+    console.log(`Processing Time: ${data.processing_time_ms}ms`);
   });
 
-// 获取推荐
+// Get recommendations
 fetch(`${BASE_URL}/api/recommendations?user_id=USER001`)
   .then(res => res.json())
   .then(data => {
-    console.log(`推荐数量: ${data.count}`);
-    console.log(`响应时间: ${data.response_time_ms}ms`);
+    console.log(`Recommendation Count: ${data.count}`);
+    console.log(`Response Time: ${data.response_time_ms}ms`);
   });
 ```
 
-## 事件流
+## Event Flow
 
-### 订单创建事件流
+### Order Creation Event Flow
 
-1. **客户端** → `POST /api/orders`
+1. **Client** → `POST /api/orders`
 2. **Order Handler Lambda**:
-   - 验证库存（原子操作）
-   - 创建订单（DynamoDB）
-   - 更新库存
-   - 发布事件到 EventBridge
-3. **DynamoDB Streams** 触发
+   - Validate inventory (atomic operation)
+   - Create order (DynamoDB)
+   - Update inventory
+   - Publish event to EventBridge
+3. **DynamoDB Streams** trigger
 4. **Recommendation Generator Lambda**:
-   - 分析订单历史
-   - 生成推荐
-   - 存储到 UserRecommendations 表
+   - Analyze order history
+   - Generate recommendations
+   - Store in UserRecommendations table
 
-### 用户行为事件流
+### User Action Event Flow
 
-1. **客户端** → `POST /api/user-actions`
+1. **Client** → `POST /api/user-actions`
 2. **User Action Handler Lambda**:
-   - 写入 UserActions 表
-   - 发布事件到 EventBridge
+   - Write to UserActions table
+   - Publish event to EventBridge
 
-## 错误码
+## Error Codes
 
-| 状态码 | 说明 |
-|--------|------|
-| 200 | 成功 |
-| 400 | 请求参数错误 |
-| 404 | 资源不存在 |
-| 500 | 服务器内部错误 |
-| 503 | 服务暂时不可用 |
+| Status Code | Description |
+|------------|-------------|
+| 200 | Success |
+| 400 | Request parameter error |
+| 404 | Resource not found |
+| 500 | Internal server error |
+| 503 | Service temporarily unavailable |
 
 ## CORS
 
-所有端点都支持 CORS，可以从任何域名访问。
+All endpoints support CORS and can be accessed from any domain.
 
-## 性能监控
+## Performance Monitoring
 
-### 关键指标
+### Key Metrics
 
-- **订单处理时间**: 目标 < 3s
-- **推荐生成时间**: 目标 < 500ms
-- **推荐查询时间**: 目标 < 500ms
+- **Order Processing Time**: Target < 3s
+- **Recommendation Generation Time**: Target < 500ms
+- **Recommendation Query Time**: Target < 500ms
 
-### 监控方式
+### Monitoring Methods
 
-- CloudWatch Logs: 查看 Lambda 执行日志
-- CloudWatch Metrics: 查看性能指标
-- 自定义指标: 在响应中包含处理时间
+- CloudWatch Logs: View Lambda execution logs
+- CloudWatch Metrics: View performance metrics
+- Custom Metrics: Include processing time in responses
 
-## 注意事项
+## Notes
 
-1. **推荐生成**: 推荐由 DynamoDB Streams 异步生成，首次查询可能需要等待
-2. **库存更新**: 使用原子操作确保数据一致性
-3. **事件顺序**: EventBridge 事件可能不保证顺序
-4. **冷启动**: Lambda 冷启动可能影响首次请求性能
+1. **Recommendation Generation**: Recommendations are generated asynchronously by DynamoDB Streams, the first query may require waiting
+2. **Inventory Updates**: Use atomic operations to ensure data consistency
+3. **Event Ordering**: EventBridge events may not guarantee order
+4. **Cold Start**: Lambda cold start may affect first request performance
 
-## 版本历史
+## Version History
 
-- **v2.0.0**: 事件驱动架构，DynamoDB Streams 集成
-- **v1.0.0**: 初始版本，基础推荐功能
+- **v2.0.0**: Event-driven architecture, DynamoDB Streams integration
+- **v1.0.0**: Initial version, basic recommendation functionality
